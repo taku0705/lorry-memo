@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ローリー運行メモ＆労務チェック</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; margin: 0; padding: 12px; font-size: 16px; color: #333; }
+  .card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  h2 { margin: 0 0 10px 0; font-size: 15px; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
+  .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  label { font-weight: bold; width: 35%; font-size: 14px; }
+  input[type="time"], input[type="number"] { width: 38%; padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; text-align: center; -webkit-appearance: none; }
+  button.time-btn { width: 22%; padding: 8px 0; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; }
+  button.time-btn:active { background: #0056b3; }
+  
+  .limit-box { background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 13px; line-height: 1.6; }
+  .limit-title { font-weight: bold; color: #856404; font-size: 14px; margin-bottom: 4px; }
+  
+  .result-box { background: #e9ecef; padding: 10px; border-radius: 6px; margin-top: 8px; }
+  .result-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 14px; border-bottom: 1px dashed #ccc; padding-bottom: 4px; }
+  .result-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .calc-formula { font-size: 11px; color: #6c757d; font-weight: normal; margin-left: 4px; }
+  .result-val { color: #d9534f; font-size: 18px; font-weight: bold; }
+  
+  .copy-btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 5px; }
+  .reset-btn { width: 100%; padding: 8px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 12px; margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>⏱ 運行時間 ＆ 休憩目安</h2>
+  <div class="row">
+    <label>出庫（点呼）</label>
+    <input type="time" id="t_start" onchange="calcLabor(); saveData();">
+    <button class="time-btn" onclick="setTime('t_start')">今</button>
+  </div>
+  
+  <div id="labor_info" class="limit-box" style="display:none;">
+    <div class="limit-title" id="limit_header">【本日（00:00出庫）の目安】</div>
+    🟢 <span id="limit_6h">--:--</span> まで帰社 ➔ <b>休憩なし</b><br>
+    🟡 <span id="limit_8h">--:--</span> まで帰社 ➔ <b>休憩 45分</b><br>
+    🔴 <span id="limit_8h_over">--:--</span> 以降 ➔ <b>休憩 65分</b><br>
+    -----------------------------------<br>
+    ⏰ 本日の上限(13h)：<b style="color:#d9534f;" id="limit_13h">--:--</b> まで
+  </div>
+
+  <div class="row" style="margin-top: 10px;">
+    <label>客先到着</label>
+    <input type="time" id="t_arrive" onchange="saveData();">
+    <button class="time-btn" onclick="setTime('t_arrive')">今</button>
+  </div>
+  <div class="row">
+    <label>荷卸開始</label>
+    <input type="time" id="t_unload_start" onchange="saveData();">
+    <button class="time-btn" onclick="setTime('t_unload_start')">今</button>
+  </div>
+  <div class="row">
+    <label>荷卸終了</label>
+    <input type="time" id="t_unload_end" onchange="saveData();">
+    <button class="time-btn" onclick="setTime('t_unload_end')">今</button>
+  </div>
+  <div class="row">
+    <label>入庫（帰社）</label>
+    <input type="time" id="t_return" onchange="saveData();">
+    <button class="time-btn" onclick="setTime('t_return')">今</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🚚 走行距離（メーター）</h2>
+  <div class="row">
+    <label>出庫距離</label>
+    <input type="number" id="d_start" placeholder="km" oninput="calcDist(); saveData();">
+    <div style="width: 22%;"></div>
+  </div>
+  <div class="row">
+    <label>客先距離</label>
+    <input type="number" id="d_arrive" placeholder="km" oninput="calcDist(); saveData();">
+    <div style="width: 22%;"></div>
+  </div>
+  <div class="row">
+    <label>入庫距離</label>
+    <input type="number" id="d_return" placeholder="km" oninput="calcDist(); saveData();">
+    <div style="width: 22%;"></div>
+  </div>
+
+  <div class="result-box">
+    <div class="result-item">
+      <div><b>総走行距離</b> <span class="calc-formula">（入庫 - 出庫）</span></div>
+      <div><span class="result-val" id="r_total">0</span> km</div>
+    </div>
+    <div class="result-item">
+      <div><b>空車距離</b> <span class="calc-formula">（入庫 - 客先）</span></div>
+      <div><span class="result-val" id="r_empty">0</span> km</div>
+    </div>
+    <div class="result-item">
+      <div><b>実車距離</b> <span class="calc-formula">（客先 - 出庫）</span></div>
+      <div><span class="result-val" id="r_actual">0</span> km</div>
+    </div>
+  </div>
+</div>
+
+<button class="copy-btn" onclick="copyData()">日報用に全コピー</button>
+<button class="reset-btn" onclick="resetForm()">画面クリア（リセット）</button>
+
+<script>
+  const fields = ['t_start', 't_arrive', 't_unload_start', 't_unload_end', 't_return', 'd_start', 'd_arrive', 'd_return'];
+
+  window.onload = function() {
+    fields.forEach(id => {
+      const savedVal = localStorage.getItem('lorry_' + id);
+      if (savedVal !== null) {
+        document.getElementById(id).value = savedVal;
+      }
+    });
+    calcLabor();
+    calcDist();
+  };
+
+  function saveData() {
+    fields.forEach(id => {
+      const val = document.getElementById(id).value;
+      localStorage.setItem('lorry_' + id, val);
+    });
+  }
+
+  function setTime(id) {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById(id).value = `${hours}:${minutes}`;
+    if(id === 't_start') calcLabor();
+    saveData();
+  }
+
+  function calcLabor() {
+    const startTimeVal = document.getElementById('t_start').value;
+    if (!startTimeVal) {
+      document.getElementById('labor_info').style.display = 'none';
+      return;
+    }
+
+    const [h, m] = startTimeVal.split(':').map(Number);
+    const addHours = (baseH, baseM, addH) => {
+      let targetH = baseH + addH;
+      if (targetH >= 24) targetH -= 24;
+      return `${String(targetH).padStart(2, '0')}:${String(baseM).padStart(2, '0')}`;
+    };
+
+    document.getElementById('limit_header').innerText = `【本日（${startTimeVal}出庫）の目安】`;
+    document.getElementById('limit_6h').innerText = addHours(h, m, 6);
+    document.getElementById('limit_8h').innerText = addHours(h, m, 8);
+    document.getElementById('limit_8h_over').innerText = addHours(h, m, 8);
+    document.getElementById('limit_13h').innerText = addHours(h, m, 13);
+    document.getElementById('labor_info').style.display = 'block';
+  }
+
+  function calcDist() {
+    const dStart = parseFloat(document.getElementById('d_start').value) || 0;
+    const dArrive = parseFloat(document.getElementById('d_arrive').value) || 0;
+    const dReturn = parseFloat(document.getElementById('d_return').value) || 0;
+
+    let total = 0, empty = 0, actual = 0;
+    if (dReturn && dStart) total = dReturn - dStart;
+    if (dReturn && dArrive) empty = dReturn - dArrive;
+    if (dArrive && dStart) actual = dArrive - dStart;
+
+    document.getElementById('r_total').innerText = total > 0 ? total.toFixed(1) : 0;
+    document.getElementById('r_empty').innerText = empty > 0 ? empty.toFixed(1) : 0;
+    document.getElementById('r_actual').innerText = actual > 0 ? actual.toFixed(1) : 0;
+  }
+
+  function copyData() {
+    const text = `【運行メモ】
+・出庫：${document.getElementById('t_start').value} （${document.getElementById('d_start').value}km）
+・到着：${document.getElementById('t_arrive').value} （${document.getElementById('d_arrive').value}km）
+・荷卸：${document.getElementById('t_unload_start').value} ～ ${document.getElementById('t_unload_end').value}
+・帰社：${document.getElementById('t_return').value} （${document.getElementById('d_return').value}km）
+-------------
+・総走行：${document.getElementById('r_total').innerText} km (入庫-出庫)
+・空車 ：${document.getElementById('r_empty').innerText} km (入庫-客先)
+・実車 ：${document.getElementById('r_actual').innerText} km (客先-出庫)`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('コピーしました！日報作成にお使いください。');
+    });
+  }
+
+  function resetForm() {
+    if(confirm('本日の入力内容を消去してクリアしますか？')) {
+      fields.forEach(id => localStorage.removeItem('lorry_' + id));
+      location.reload();
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -9,12 +9,19 @@
   .card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   h2 { margin: 0 0 10px 0; font-size: 15px; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
   .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .row-break { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; background: #f8f9fa; padding: 4px 6px; border-radius: 6px; }
-  label { font-weight: bold; width: 32%; font-size: 13px; }
-  .break-label { font-weight: bold; width: 20%; font-size: 12px; color: #555; }
-  input[type="time"], input[type="number"], input[type="date"] { width: 36%; padding: 6px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; text-align: center; -webkit-appearance: none; }
+  
+  /* 休憩用の横並びスタイル */
+  .break-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #f8f9fa; padding: 6px; border-radius: 6px; border: 1px solid #e9ecef; }
+  .break-title { font-weight: bold; font-size: 12px; color: #555; width: 12%; }
+  .break-group { display: flex; align-items: center; justify-content: space-between; width: 42%; }
+  .break-group span { font-size: 11px; color: #666; margin-right: 2px; }
+  .break-group input[type="time"] { width: 55%; padding: 4px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+  .break-group button.time-btn { width: 35%; padding: 4px 0; background: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; }
+
+  label { font-weight: bold; width: 35%; font-size: 14px; }
+  input[type="time"], input[type="number"], input[type="date"] { width: 38%; padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; text-align: center; -webkit-appearance: none; }
   input[type="date"] { width: 60%; font-weight: bold; color: #007bff; background: #fff; }
-  button.time-btn { width: 22%; padding: 6px 0; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 13px; }
+  button.time-btn { width: 22%; padding: 8px 0; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; }
   button.time-btn:active { background: #0056b3; }
   
   .limit-box { background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 13px; line-height: 1.6; }
@@ -35,13 +42,13 @@
 
 <div class="card date-card">
   <div class="row" style="margin-bottom:0;">
-    <label style="width:35%;">📅 対象日付</label>
+    <label style="width:35%;">📅 日付選択</label>
     <input type="date" id="selected_date" onchange="loadDateData();">
   </div>
 </div>
 
 <div class="card">
-  <h2>⏱ 運行時間 ＆ 労務</h2>
+  <h2>⏱ 運行時間 ＆ 休憩目安</h2>
   <div class="row">
     <label>出庫（点呼）</label>
     <input type="time" id="t_start" onchange="calcLabor(); saveData();">
@@ -57,40 +64,52 @@
     ⏰ 本日の上限(13h)：<b style="color:#d9534f;" id="limit_13h">--:--</b> まで
   </div>
 
-  <div class="row-break" style="margin-top:10px;">
-    <span class="break-label">休憩1開始</span>
-    <input type="time" id="t_b1_s" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_b1_s')">今</button>
-  </div>
-  <div class="row-break">
-    <span class="break-label">休憩1終了</span>
-    <input type="time" id="t_b1_e" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_b1_e')">今</button>
-  </div>
-
-  <div class="row-break">
-    <span class="break-label">休憩2開始</span>
-    <input type="time" id="t_b2_s" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_b2_s')">今</button>
-  </div>
-  <div class="row-break">
-    <span class="break-label">休憩2終了</span>
-    <input type="time" id="t_b2_e" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_b2_e')">今</button>
+  <!-- 休憩1 -->
+  <div class="break-row" style="margin-top: 10px;">
+    <span class="break-title">休憩1</span>
+    <div class="break-group">
+      <span>開始</span>
+      <input type="time" id="t_b1_s" onchange="saveData();">
+      <button class="time-btn" onclick="setTime('t_b1_s')">今</button>
+    </div>
+    <div class="break-group">
+      <span>終了</span>
+      <input type="time" id="t_b1_e" onchange="saveData();">
+      <button class="time-btn" onclick="setTime('t_b1_e')">今</button>
+    </div>
   </div>
 
-  <div class="row-break">
-    <span class="break-label">休憩3開始</span>
-    <input type="time" id="t_b3_s" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_b3_s')">今</button>
-  </div>
-  <div class="row-break" style="margin-bottom:10px;">
-    <span class="break-label">休憩3終了</span>
-    <input type="time" id="t_b3_e" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_b3_e')">今</button>
+  <!-- 休憩2 -->
+  <div class="break-row">
+    <span class="break-title">休憩2</span>
+    <div class="break-group">
+      <span>開始</span>
+      <input type="time" id="t_b2_s" onchange="saveData();">
+      <button class="time-btn" onclick="setTime('t_b2_s')">今</button>
+    </div>
+    <div class="break-group">
+      <span>終了</span>
+      <input type="time" id="t_b2_e" onchange="saveData();">
+      <button class="time-btn" onclick="setTime('t_b2_e')">今</button>
+    </div>
   </div>
 
-  <div class="row">
+  <!-- 休憩3 -->
+  <div class="break-row">
+    <span class="break-title">休憩3</span>
+    <div class="break-group">
+      <span>開始</span>
+      <input type="time" id="t_b3_s" onchange="saveData();">
+      <button class="time-btn" onclick="setTime('t_b3_s')">今</button>
+    </div>
+    <div class="break-group">
+      <span>終了</span>
+      <input type="time" id="t_b3_e" onchange="saveData();">
+      <button class="time-btn" onclick="setTime('t_b3_e')">今</button>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 10px;">
     <label>客先到着</label>
     <input type="time" id="t_arrive" onchange="saveData();">
     <button class="time-btn" onclick="setTime('t_arrive')">今</button>
@@ -146,7 +165,7 @@
   </div>
 </div>
 
-<button class="copy-btn" onclick="copyData()">選択した日のデータを全コピー</button>
+<button class="copy-btn" onclick="copyData()">日報用に全コピー</button>
 <button class="reset-btn" onclick="resetForm()">選択した日のデータをクリア</button>
 
 <script>

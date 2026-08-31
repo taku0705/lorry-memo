@@ -10,7 +10,7 @@
   h2 { margin: 0 0 10px 0; font-size: 15px; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
   .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   
-  /* 休憩用の横並びスタイル */
+  /* 休憩用レイアウト */
   .break-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #f8f9fa; padding: 6px; border-radius: 6px; border: 1px solid #e9ecef; }
   .break-title { font-weight: bold; font-size: 12px; color: #555; width: 12%; }
   .break-group { display: flex; align-items: center; justify-content: space-between; width: 42%; }
@@ -18,11 +18,18 @@
   .break-group input[type="time"] { width: 55%; padding: 4px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
   .break-group button.time-btn { width: 35%; padding: 4px 0; background: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; }
 
+  /* 立ち寄り先カード */
+  .stop-card { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 10px; position: relative; }
+  .stop-header { font-weight: bold; font-size: 14px; color: #007bff; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .del-stop-btn { background: #dc3545; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 12px; cursor: pointer; }
+
   label { font-weight: bold; width: 35%; font-size: 14px; }
   input[type="time"], input[type="number"], input[type="date"] { width: 38%; padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; text-align: center; -webkit-appearance: none; }
   input[type="date"] { width: 60%; font-weight: bold; color: #007bff; background: #fff; }
   button.time-btn { width: 22%; padding: 8px 0; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; }
   button.time-btn:active { background: #0056b3; }
+  
+  .add-btn { width: 100%; padding: 8px; background: #17a2b8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
   
   .limit-box { background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 13px; line-height: 1.6; }
   .limit-title { font-weight: bold; color: #856404; font-size: 14px; margin-bottom: 4px; }
@@ -48,7 +55,7 @@
 </div>
 
 <div class="card">
-  <h2>⏱ 運行時間 ＆ 休憩目安</h2>
+  <h2>⏱ 運行時間 ＆ 休憩</h2>
   <div class="row">
     <label>出庫（点呼）</label>
     <input type="time" id="t_start" onchange="calcLabor(); saveData();">
@@ -64,7 +71,7 @@
     ⏰ 本日の上限(13h)：<b style="color:#d9534f;" id="limit_13h">--:--</b> まで
   </div>
 
-  <!-- 休憩1 -->
+  <!-- 休憩 (横並び3セット) -->
   <div class="break-row" style="margin-top: 10px;">
     <span class="break-title">休憩1</span>
     <div class="break-group">
@@ -78,8 +85,6 @@
       <button class="time-btn" onclick="setTime('t_b1_e')">今</button>
     </div>
   </div>
-
-  <!-- 休憩2 -->
   <div class="break-row">
     <span class="break-title">休憩2</span>
     <div class="break-group">
@@ -93,8 +98,6 @@
       <button class="time-btn" onclick="setTime('t_b2_e')">今</button>
     </div>
   </div>
-
-  <!-- 休憩3 -->
   <div class="break-row">
     <span class="break-title">休憩3</span>
     <div class="break-group">
@@ -108,40 +111,25 @@
       <button class="time-btn" onclick="setTime('t_b3_e')">今</button>
     </div>
   </div>
-
-  <div class="row" style="margin-top: 10px;">
-    <label>客先到着</label>
-    <input type="time" id="t_arrive" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_arrive')">今</button>
-  </div>
-  <div class="row">
-    <label>荷卸開始</label>
-    <input type="time" id="t_unload_start" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_unload_start')">今</button>
-  </div>
-  <div class="row">
-    <label>荷卸終了</label>
-    <input type="time" id="t_unload_end" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_unload_end')">今</button>
-  </div>
-  <div class="row">
-    <label>入庫（帰社）</label>
-    <input type="time" id="t_return" onchange="saveData();">
-    <button class="time-btn" onclick="setTime('t_return')">今</button>
-  </div>
 </div>
 
 <div class="card">
-  <h2>🚚 走行距離（メーター）</h2>
+  <h2>🏬 立ち寄り先（客先）</h2>
+  <div id="stops_container"></div>
+  <button class="add-btn" onclick="addStopCard(); saveData();">＋ 立ち寄り先を追加</button>
+</div>
+
+<div class="card">
+  <h2>🚚 帰社 ＆ 走行距離</h2>
   <div class="row">
     <label>出庫距離</label>
     <input type="number" id="d_start" placeholder="km" oninput="calcDist(); saveData();">
     <div style="width: 22%;"></div>
   </div>
   <div class="row">
-    <label>客先距離</label>
-    <input type="number" id="d_arrive" placeholder="km" oninput="calcDist(); saveData();">
-    <div style="width: 22%;"></div>
+    <label>入庫（帰社）</label>
+    <input type="time" id="t_return" onchange="saveData();">
+    <button class="time-btn" onclick="setTime('t_return')">今</button>
   </div>
   <div class="row">
     <label>入庫距離</label>
@@ -155,26 +143,21 @@
       <div><span class="result-val" id="r_total">0</span> km</div>
     </div>
     <div class="result-item">
-      <div><b>空車距離</b> <span class="calc-formula">（入庫 - 客先）</span></div>
-      <div><span class="result-val" id="r_empty">0</span> km</div>
+      <div><b>実車距離</b> <span class="calc-formula">（最終客先 - 出庫）</span></div>
+      <div><span class="result-val" id="r_actual">0</span> km</div>
     </div>
     <div class="result-item">
-      <div><b>実車距離</b> <span class="calc-formula">（客先 - 出庫）</span></div>
-      <div><span class="result-val" id="r_actual">0</span> km</div>
+      <div><b>空車距離</b> <span class="calc-formula">（入庫 - 最終客先）</span></div>
+      <div><span class="result-val" id="r_empty">0</span> km</div>
     </div>
   </div>
 </div>
 
-<button class="copy-btn" onclick="copyData()">日報用に全コピー</button>
+<button class="copy-btn" onclick="copyData()">選択した日のデータを全コピー</button>
 <button class="reset-btn" onclick="resetForm()">選択した日のデータをクリア</button>
 
 <script>
-  const fields = [
-    't_start', 
-    't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e',
-    't_arrive', 't_unload_start', 't_unload_end', 't_return', 
-    'd_start', 'd_arrive', 'd_return'
-  ];
+  let stopCount = 0;
 
   function getTodayString() {
     const today = new Date();
@@ -185,27 +168,53 @@
   }
 
   window.onload = function() {
-    const dateInput = document.getElementById('selected_date');
-    dateInput.value = getTodayString();
+    document.getElementById('selected_date').value = getTodayString();
     loadDateData();
   };
 
-  function loadDateData() {
-    const currentDate = document.getElementById('selected_date').value;
-    fields.forEach(id => {
-      const savedVal = localStorage.getItem(`lorry_${currentDate}_${id}`);
-      document.getElementById(id).value = savedVal !== null ? savedVal : '';
-    });
-    calcLabor();
-    calcDist();
+  function addStopCard(data = {}) {
+    stopCount++;
+    const id = stopCount;
+    const container = document.getElementById('stops_container');
+    const card = document.createElement('div');
+    card.className = 'stop-card';
+    card.id = `stop_card_${id}`;
+    card.innerHTML = `
+      <div class="stop-header">
+        <span>立ち寄り先 ${id}</span>
+        ${id > 1 ? `<button class="del-stop-btn" onclick="removeStopCard(${id})">削除</button>` : ''}
+      </div>
+      <div class="row">
+        <label>到着</label>
+        <input type="time" id="t_arrive_${id}" value="${data.t_arrive || ''}" onchange="saveData();">
+        <button class="time-btn" onclick="setTime('t_arrive_${id}')">今</button>
+      </div>
+      <div class="row">
+        <label>荷卸開始</label>
+        <input type="time" id="t_u_start_${id}" value="${data.t_u_start || ''}" onchange="saveData();">
+        <button class="time-btn" onclick="setTime('t_u_start_${id}')">今</button>
+      </div>
+      <div class="row">
+        <label>荷卸終了</label>
+        <input type="time" id="t_u_end_${id}" value="${data.t_u_end || ''}" onchange="saveData();">
+        <button class="time-btn" onclick="setTime('t_u_end_${id}')">今</button>
+      </div>
+      <div class="row">
+        <label>到着距離</label>
+        <input type="number" id="d_arrive_${id}" value="${data.d_arrive || ''}" placeholder="km" oninput="calcDist(); saveData();">
+        <div style="width: 22%;"></div>
+      </div>
+    `;
+    container.appendChild(card);
   }
 
-  function saveData() {
-    const currentDate = document.getElementById('selected_date').value;
-    fields.forEach(id => {
-      const val = document.getElementById(id).value;
-      localStorage.setItem(`lorry_${currentDate}_${id}`, val);
-    });
+  function removeStopCard(id) {
+    const card = document.getElementById(`stop_card_${id}`);
+    if (card) {
+      card.remove();
+      saveData();
+      calcDist();
+    }
   }
 
   function setTime(id) {
@@ -215,6 +224,59 @@
     document.getElementById(id).value = `${hours}:${minutes}`;
     if(id === 't_start') calcLabor();
     saveData();
+  }
+
+  function saveData() {
+    const dt = document.getElementById('selected_date').value;
+    
+    // 基本項目
+    const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
+    baseFields.forEach(id => {
+      localStorage.setItem(`lorry_${dt}_${id}`, document.getElementById(id).value);
+    });
+
+    // 立ち寄り先項目
+    const stopsData = [];
+    const cards = document.querySelectorAll('.stop-card');
+    cards.forEach(card => {
+      const cid = card.id.replace('stop_card_', '');
+      stopsData.push({
+        t_arrive: document.getElementById(`t_arrive_${cid}`).value,
+        t_u_start: document.getElementById(`t_u_start_${cid}`).value,
+        t_u_end: document.getElementById(`t_u_end_${cid}`).value,
+        d_arrive: document.getElementById(`d_arrive_${cid}`).value
+      });
+    });
+    localStorage.setItem(`lorry_${dt}_stops`, JSON.stringify(stopsData));
+  }
+
+  function loadDateData() {
+    const dt = document.getElementById('selected_date').value;
+    
+    // 基本項目読み込み
+    const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
+    baseFields.forEach(id => {
+      const savedVal = localStorage.getItem(`lorry_${dt}_${id}`);
+      document.getElementById(id).value = savedVal !== null ? savedVal : '';
+    });
+
+    // 立ち寄り先読み込み
+    document.getElementById('stops_container').innerHTML = '';
+    stopCount = 0;
+    const savedStops = localStorage.getItem(`lorry_${dt}_stops`);
+    if (savedStops) {
+      const stopsData = JSON.parse(savedStops);
+      if (stopsData.length > 0) {
+        stopsData.forEach(data => addStopCard(data));
+      } else {
+        addStopCard();
+      }
+    } else {
+      addStopCard();
+    }
+
+    calcLabor();
+    calcDist();
   }
 
   function calcLabor() {
@@ -241,17 +303,25 @@
 
   function calcDist() {
     const dStart = parseFloat(document.getElementById('d_start').value) || 0;
-    const dArrive = parseFloat(document.getElementById('d_arrive').value) || 0;
     const dReturn = parseFloat(document.getElementById('d_return').value) || 0;
 
-    let total = 0, empty = 0, actual = 0;
+    // 最後の客先の距離を取得
+    let lastStopDist = 0;
+    const cards = document.querySelectorAll('.stop-card');
+    cards.forEach(card => {
+      const cid = card.id.replace('stop_card_', '');
+      const dist = parseFloat(document.getElementById(`d_arrive_${cid}`).value) || 0;
+      if (dist > 0) lastStopDist = dist;
+    });
+
+    let total = 0, actual = 0, empty = 0;
     if (dReturn && dStart) total = dReturn - dStart;
-    if (dReturn && dArrive) empty = dReturn - dArrive;
-    if (dArrive && dStart) actual = dArrive - dStart;
+    if (lastStopDist && dStart) actual = lastStopDist - dStart;
+    if (dReturn && lastStopDist) empty = dReturn - lastStopDist;
 
     document.getElementById('r_total').innerText = total > 0 ? total.toFixed(1) : 0;
-    document.getElementById('r_empty').innerText = empty > 0 ? empty.toFixed(1) : 0;
     document.getElementById('r_actual').innerText = actual > 0 ? actual.toFixed(1) : 0;
+    document.getElementById('r_empty').innerText = empty > 0 ? empty.toFixed(1) : 0;
   }
 
   function copyData() {
@@ -262,18 +332,23 @@
       return (s || e) ? `${s || '--:--'} ～ ${e || '--:--'}` : 'なし';
     };
 
+    let stopsText = '';
+    const cards = document.querySelectorAll('.stop-card');
+    cards.forEach((card, index) => {
+      const cid = card.id.replace('stop_card_', '');
+      stopsText += `・客先${index + 1}：到着 ${document.getElementById(`t_arrive_${cid}`).value || '--:--'}（${document.getElementById(`d_arrive_${cid}`).value || '--'}km） / 荷卸 ${document.getElementById(`t_u_start_${cid}`).value || '--:--'} ～ ${document.getElementById(`t_u_end_${cid}`).value || '--:--'}\n`;
+    });
+
     const text = `【運行メモ (${dt})】
 ・出庫：${document.getElementById('t_start').value} （${document.getElementById('d_start').value}km）
 ・休憩1：${formatBreak('t_b1_s', 't_b1_e')}
 ・休憩2：${formatBreak('t_b2_s', 't_b2_e')}
 ・休憩3：${formatBreak('t_b3_s', 't_b3_e')}
-・到着：${document.getElementById('t_arrive').value} （${document.getElementById('d_arrive').value}km）
-・荷卸：${document.getElementById('t_unload_start').value} ～ ${document.getElementById('t_unload_end').value}
-・帰社：${document.getElementById('t_return').value} （${document.getElementById('d_return').value}km）
+${stopsText}・帰社：${document.getElementById('t_return').value} （${document.getElementById('d_return').value}km）
 -------------
 ・総走行：${document.getElementById('r_total').innerText} km (入庫-出庫)
-・空車 ：${document.getElementById('r_empty').innerText} km (入庫-客先)
-・実車 ：${document.getElementById('r_actual').innerText} km (客先-出庫)`;
+・実車 ：${document.getElementById('r_actual').innerText} km (最終客先-出庫)
+・空車 ：${document.getElementById('r_empty').innerText} km (入庫-最終客先)`;
 
     navigator.clipboard.writeText(text).then(() => {
       alert(`${dt} のデータをコピーしました！`);
@@ -283,7 +358,9 @@
   function resetForm() {
     const dt = document.getElementById('selected_date').value;
     if(confirm(`${dt} の入力内容を消去してクリアしますか？`)) {
-      fields.forEach(id => localStorage.removeItem(`lorry_${dt}_${id}`));
+      const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
+      baseFields.forEach(id => localStorage.removeItem(`lorry_${dt}_${id}`));
+      localStorage.removeItem(`lorry_${dt}_stops`);
       loadDateData();
     }
   }

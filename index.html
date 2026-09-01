@@ -475,12 +475,24 @@
 ${stopsText}・帰社：${document.getElementById('t_return').value} （${document.getElementById('d_return').value}km）
 -------------
 ・総走行：${document.getElementById('r_total').innerText} km (入庫-出庫)
-・実車　：${document.getElementById('r_actual').innerText} km (最終客先-出庫)
-・空車　：${document.getElementById('r_empty').innerText} km (入庫-最終客先)`;
+・実車 ：${document.getElementById('r_actual').innerText} km (最終客先-出庫)
+・空車 ：${document.getElementById('r_empty').innerText} km (入庫-最終客先)`;
 
     navigator.clipboard.writeText(text).then(() => {
       alert(`${dt} のデータをコピーしました！`);
     });
   }
 
-  function resetForm()
+  function resetForm() {
+    const dt = document.getElementById('selected_date').value;
+    if(confirm(`${dt} の入力内容を消去してクリアしますか？`)) {
+      const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
+      baseFields.forEach(id => localStorage.removeItem(`lorry_${dt}_${id}`));
+      localStorage.removeItem(`lorry_${dt}_stops`);
+      loadDateData();
+    }
+  }
+</script>
+
+</body>
+</html>

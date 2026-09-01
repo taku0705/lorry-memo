@@ -42,7 +42,7 @@
   .c430-val { font-weight: bold; font-size: 15px; }
   .c430-alert-ok { color: #28a745; }
   .c430-alert-warn { color: #ff8c00; font-weight: bold; }
-  .c430-alert-ng { color: #dc3545; font-weight: bold; animation: blink 1s infinite; }
+  .c430-alert-ng { color: #dc3545; font-weight: bold; }
   .c430-note { font-size: 11px; color: #666; margin-top: 4px; border-top: 1px dashed #b8daff; padding-top: 4px; }
 
   .result-box { background: #e9ecef; padding: 10px; border-radius: 6px; margin-top: 8px; }
@@ -110,7 +110,7 @@
     </div>
     <div class="break-group">
       <span>終了</span>
-      <input type="time" id="t_b3_e" onchange="updateAll();">
+      <input type="time" id="t_b2_e" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b2_e')">今</button>
     </div>
   </div>
@@ -313,7 +313,7 @@
     breaks.forEach(b => {
       if (b.s !== null && b.e !== null) {
         let dur = b.e - b.s;
-        if (dur < 0) dur += 1440; // 日跨ぎ
+        if (dur < 0) dur += 1440; // 日跨ぎ補正
         totalBreakMin += dur;
         if (dur >= 10) {
           totalValidBreakMin += dur; // 10分以上のみ有効

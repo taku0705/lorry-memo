@@ -31,10 +31,20 @@
   
   .add-btn { width: 100%; padding: 8px; background: #17a2b8; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
   
-  /* 労務チェック文字拡大調整 */
+  /* 労務チェック */
   .limit-box { background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 15px; line-height: 1.7; }
   .limit-title { font-weight: bold; color: #856404; font-size: 16px; margin-bottom: 6px; border-bottom: 1px dashed #ffe8a1; padding-bottom: 4px; }
   
+  /* 430（ヨンサンマル）専用表示枠 */
+  .c430-box { background: #e8f4f8; border: 1px solid #b8daff; border-radius: 8px; padding: 10px; margin-top: 10px; }
+  .c430-title { font-weight: bold; font-size: 14px; color: #004085; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .c430-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 4px; }
+  .c430-val { font-weight: bold; font-size: 15px; }
+  .c430-alert-ok { color: #28a745; }
+  .c430-alert-warn { color: #ff8c00; font-weight: bold; }
+  .c430-alert-ng { color: #dc3545; font-weight: bold; animation: blink 1s infinite; }
+  .c430-note { font-size: 11px; color: #666; margin-top: 4px; border-top: 1px dashed #b8daff; padding-top: 4px; }
+
   .result-box { background: #e9ecef; padding: 10px; border-radius: 6px; margin-top: 8px; }
   .result-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 14px; border-bottom: 1px dashed #ccc; padding-bottom: 4px; }
   .result-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -59,7 +69,7 @@
   <h2>⏱ 運行時間 ＆ 休憩</h2>
   <div class="row">
     <label>出庫（点呼）</label>
-    <input type="time" id="t_start" onchange="calcLabor(); saveData();">
+    <input type="time" id="t_start" onchange="updateAll();">
     <button class="time-btn" onclick="setTime('t_start')">今</button>
   </div>
   <div class="row">
@@ -82,12 +92,12 @@
     <span class="break-title">休憩1</span>
     <div class="break-group">
       <span>開始</span>
-      <input type="time" id="t_b1_s" onchange="saveData();">
+      <input type="time" id="t_b1_s" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b1_s')">今</button>
     </div>
     <div class="break-group">
       <span>終了</span>
-      <input type="time" id="t_b1_e" onchange="saveData();">
+      <input type="time" id="t_b1_e" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b1_e')">今</button>
     </div>
   </div>
@@ -95,12 +105,12 @@
     <span class="break-title">休憩2</span>
     <div class="break-group">
       <span>開始</span>
-      <input type="time" id="t_b2_s" onchange="saveData();">
+      <input type="time" id="t_b2_s" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b2_s')">今</button>
     </div>
     <div class="break-group">
       <span>終了</span>
-      <input type="time" id="t_b2_e" onchange="saveData();">
+      <input type="time" id="t_b3_e" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b2_e')">今</button>
     </div>
   </div>
@@ -108,15 +118,38 @@
     <span class="break-title">休憩3</span>
     <div class="break-group">
       <span>開始</span>
-      <input type="time" id="t_b3_s" onchange="saveData();">
+      <input type="time" id="t_b3_s" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b3_s')">今</button>
     </div>
     <div class="break-group">
       <span>終了</span>
-      <input type="time" id="t_b3_e" onchange="saveData();">
+      <input type="time" id="t_b3_e" onchange="updateAll();">
       <button class="time-btn" onclick="setTime('t_b3_e')">今</button>
     </div>
   </div>
+
+  <!-- 430（ヨンサンマル）管理表示領域 -->
+  <div id="c430_info" class="c430-box" style="display:none;">
+    <div class="c430-title">
+      <span>🚛 430（連続運転）リアルタイム状況</span>
+    </div>
+    <div class="c430-row">
+      <span>現在の連続運転時間：</span>
+      <span id="c430_drive_time" class="c430-val">0分</span>
+    </div>
+    <div class="c430-row">
+      <span>連続運転上限（4h）まで：</span>
+      <span id="c430_remaining_time" class="c430-val">あと 4時間00分</span>
+    </div>
+    <div class="c430-row">
+      <span>有効取得休憩（10分以上）：</span>
+      <span id="c430_valid_break" class="c430-val">0分 / 30分</span>
+    </div>
+    <div class="c430-note" id="c430_advice">
+      💡 10分未満の休憩は改善基準告示により有効カウントされません。
+    </div>
+  </div>
+
 </div>
 
 <div class="card">
@@ -129,7 +162,7 @@
   <h2>🚚 帰社 ＆ 走行距離</h2>
   <div class="row">
     <label>入庫（帰社）</label>
-    <input type="time" id="t_return" onchange="saveData();">
+    <input type="time" id="t_return" onchange="updateAll();">
     <button class="time-btn" onclick="setTime('t_return')">今</button>
   </div>
   <div class="row">
@@ -172,6 +205,12 @@
     document.getElementById('selected_date').value = getTodayString();
     loadDateData();
   };
+
+  function updateAll() {
+    calcLabor();
+    calc430();
+    saveData();
+  }
 
   function addStopCard(data = {}) {
     stopCount++;
@@ -223,20 +262,111 @@
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     document.getElementById(id).value = `${hours}:${minutes}`;
-    if(id === 't_start') calcLabor();
-    saveData();
+    updateAll();
+  }
+
+  function timeToMin(tStr) {
+    if(!tStr) return null;
+    const [h, m] = tStr.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function minToHM(min) {
+    if(min <= 0) return '0分';
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return h > 0 ? `${h}時間${m}分` : `${m}分`;
+  }
+
+  function calc430() {
+    const startMin = timeToMin(document.getElementById('t_start').value);
+    if (startMin === null) {
+      document.getElementById('c430_info').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('c430_info').style.display = 'block';
+
+    // 終点（帰社時間、なければ現在時刻）
+    const returnMin = timeToMin(document.getElementById('t_return').value);
+    let endMin;
+    if (returnMin !== null) {
+      endMin = returnMin;
+    } else {
+      const now = new Date();
+      endMin = now.getHours() * 60 + now.getMinutes();
+    }
+    
+    // 日を跨ぐ場合の補正
+    if (endMin < startMin) endMin += 1440;
+
+    // 休憩の抽出と有効休憩（10分以上）の計算
+    const breaks = [
+      { s: timeToMin(document.getElementById('t_b1_s').value), e: timeToMin(document.getElementById('t_b1_e').value) },
+      { s: timeToMin(document.getElementById('t_b2_s').value), e: timeToMin(document.getElementById('t_b2_e').value) },
+      { s: timeToMin(document.getElementById('t_b3_s').value), e: timeToMin(document.getElementById('t_b3_e').value) }
+    ];
+
+    let totalBreakMin = 0;
+    let totalValidBreakMin = 0;
+
+    breaks.forEach(b => {
+      if (b.s !== null && b.e !== null) {
+        let dur = b.e - b.s;
+        if (dur < 0) dur += 1440; // 日跨ぎ
+        totalBreakMin += dur;
+        if (dur >= 10) {
+          totalValidBreakMin += dur; // 10分以上のみ有効
+        }
+      }
+    });
+
+    // 拘束経過時間（出庫〜現在/帰社）
+    let elapsedMin = endMin - startMin;
+    
+    // 連続運転時間 ＝ 拘束経過時間 - 総休憩時間（合計有効休憩30分達成でリセット）
+    let driveMin = elapsedMin - totalBreakMin;
+    if (totalValidBreakMin >= 30) {
+      driveMin = 0; // 30分確保でリセット
+    }
+    if (driveMin < 0) driveMin = 0;
+
+    // 残り走行可能時間（4時間＝240分）
+    let remainingMin = 240 - driveMin;
+
+    // DOM書き換え
+    document.getElementById('c430_drive_time').innerText = minToHM(driveMin);
+    document.getElementById('c430_valid_break').innerText = `${totalValidBreakMin}分 / 30分`;
+
+    const remEl = document.getElementById('c430_remaining_time');
+    const adviceEl = document.getElementById('c430_advice');
+
+    if (totalValidBreakMin >= 30) {
+      remEl.innerText = 'リセット済み（良好）';
+      remEl.className = 'c430-val c430-alert-ok';
+      adviceEl.innerHTML = '🟢 合計30分以上の有効休憩を取得済みです！';
+    } else if (remainingMin <= 0) {
+      remEl.innerText = '0分（430違反発生！）';
+      remEl.className = 'c430-val c430-alert-ng';
+      adviceEl.innerHTML = '🔴 <b>4時間を超過しています！</b> 至急30分以上の休憩をとってください。';
+    } else if (remainingMin <= 45) {
+      remEl.innerText = `あと ${minToHM(remainingMin)}`;
+      remEl.className = 'c430-val c430-alert-warn';
+      adviceEl.innerHTML = `🟡 <b>もうすぐ4時間です！</b> 残り${30 - totalValidBreakMin}分以上の休憩を確保してください。`;
+    } else {
+      remEl.innerText = `あと ${minToHM(remainingMin)}`;
+      remEl.className = 'c430-val c430-alert-ok';
+      adviceEl.innerHTML = `💡 残り${30 - totalValidBreakMin}分以上の有効休憩をとれば連続運転がリセットされます。`;
+    }
   }
 
   function saveData() {
     const dt = document.getElementById('selected_date').value;
-    
-    // 基本項目
     const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
     baseFields.forEach(id => {
       localStorage.setItem(`lorry_${dt}_${id}`, document.getElementById(id).value);
     });
 
-    // 立ち寄り先項目
     const stopsData = [];
     const cards = document.querySelectorAll('.stop-card');
     cards.forEach(card => {
@@ -253,15 +383,12 @@
 
   function loadDateData() {
     const dt = document.getElementById('selected_date').value;
-    
-    // 基本項目読み込み
     const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
     baseFields.forEach(id => {
       const savedVal = localStorage.getItem(`lorry_${dt}_${id}`);
       document.getElementById(id).value = savedVal !== null ? savedVal : '';
     });
 
-    // 立ち寄り先読み込み
     document.getElementById('stops_container').innerHTML = '';
     stopCount = 0;
     const savedStops = localStorage.getItem(`lorry_${dt}_stops`);
@@ -277,6 +404,7 @@
     }
 
     calcLabor();
+    calc430();
     calcDist();
   }
 
@@ -306,7 +434,6 @@
     const dStart = parseFloat(document.getElementById('d_start').value) || 0;
     const dReturn = parseFloat(document.getElementById('d_return').value) || 0;
 
-    // 最後の客先の距離を取得
     let lastStopDist = 0;
     const cards = document.querySelectorAll('.stop-card');
     cards.forEach(card => {
@@ -348,24 +475,12 @@
 ${stopsText}・帰社：${document.getElementById('t_return').value} （${document.getElementById('d_return').value}km）
 -------------
 ・総走行：${document.getElementById('r_total').innerText} km (入庫-出庫)
-・実車 ：${document.getElementById('r_actual').innerText} km (最終客先-出庫)
-・空車 ：${document.getElementById('r_empty').innerText} km (入庫-最終客先)`;
+・実車　：${document.getElementById('r_actual').innerText} km (最終客先-出庫)
+・空車　：${document.getElementById('r_empty').innerText} km (入庫-最終客先)`;
 
     navigator.clipboard.writeText(text).then(() => {
       alert(`${dt} のデータをコピーしました！`);
     });
   }
 
-  function resetForm() {
-    const dt = document.getElementById('selected_date').value;
-    if(confirm(`${dt} の入力内容を消去してクリアしますか？`)) {
-      const baseFields = ['t_start', 't_b1_s', 't_b1_e', 't_b2_s', 't_b2_e', 't_b3_s', 't_b3_e', 't_return', 'd_start', 'd_return'];
-      baseFields.forEach(id => localStorage.removeItem(`lorry_${dt}_${id}`));
-      localStorage.removeItem(`lorry_${dt}_stops`);
-      loadDateData();
-    }
-  }
-</script>
-
-</body>
-</html>
+  function resetForm()

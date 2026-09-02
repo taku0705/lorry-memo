@@ -204,7 +204,19 @@
   window.onload = function() {
     document.getElementById('selected_date').value = getTodayString();
     loadDateData();
+
+    // 1分ごとに自動で430の状況を更新するタイマー
+    setInterval(() => {
+      calc430();
+    }, 60000);
   };
+
+  // 画面がアクティブ（復帰）になった時にも即時再計算
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      calc430();
+    }
+  });
 
   function updateAll() {
     calcLabor();
